@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="dao.IAllDao">
+	<resultMap type="pojo.Orders" id="orderMap">
+	<id column="orderno" property="orderno"/>
+	<result column="orderdate" property="orderdate"/>
+	<result column="suppliername" property="suppliername"/>
+	<result column="supplieraddress" property="supplieraddress"/>
+	<result column="department" property="department"/>
+	<result column="warehouse" property="warehouse"/>
+	<collection property="orderdetail" column="orderno" select="querydetail"></collection>
+	</resultMap>
+	<select id="querydetail" resultType="pojo.OrderDetail">
+		SELECT * FROM orderdetail WHERE orderno=#{0}
+	</select>	
+	<select id="querypage" resultMap="orderMap">
+		SELECT * FROM orders  LIMIT #{currentpage},1
+	</select>
+	
+	<delete id="delete">
+		DELETE FROM orderdetail WHERE orderno=#{orderno};
+		DELETE FROM orders WHERE orderno=#{orderno};
+	</delete>
+	
+	<insert id="insert">
+			INSERT INTO orders(`orderno`,`orderdate`,`suppliername`,`supplieraddress`,`department`,`warehouse`)
+			VALUES(#{o.orderno},#{o.orderdate},#{o.suppliername},#{o.supplieraddress},#{o.department},#{o.warehouse});
+		<if test="o.orderdetail.size!=0">
+			INSERT INTO orderdetail(`orderno`,`goodsname`,`goodsprice`,`goodsmoneyamt`,`goodsnum`)
+			VALUES
+			<foreach collection="o.orderdetail" separator="," item="list">
+				(#{o.orderno},#{list.goodsname},#{list.goodsprice},#{list.goodsmoneyamt},#{list.goodsnum})
+			</foreach>
+			;
+		</if>
+	</insert>
+	
+	<select id="querySaleformCount" resultType="int">
+		select count(*) from orders
+		where orderno=#{orderno}
+	</select>
+	
+	<select id="count" resultType="int">
+		select count(*) from orders
+	</select>
+</mapper>
